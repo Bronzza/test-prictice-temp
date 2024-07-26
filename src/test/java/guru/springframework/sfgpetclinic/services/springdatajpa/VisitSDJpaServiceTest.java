@@ -2,6 +2,7 @@ package guru.springframework.sfgpetclinic.services.springdatajpa;
 
 import guru.springframework.sfgpetclinic.model.Visit;
 import guru.springframework.sfgpetclinic.repositories.VisitRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,6 +20,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +45,19 @@ class VisitSDJpaServiceTest {
         assertNotNull(all);
         verify(visitRepository, times(1)).findAll();
     }
+
+    @ParameterizedTest
+    @MethodSource("initMultipleVisitList")
+    @DisplayName("BDD findAll visits")
+    void findAllBDD(List<Visit> visits) {
+        given(visitRepository.findAll()).willReturn(visits);
+
+        Set<Visit> all = serviceUnderTest.findAll();
+
+        assertNotNull(all);
+        then(visitRepository).should().findAll();
+    }
+
 
     private static Stream<Arguments> initMultipleVisitList() {
         List<Visit> visits = new ArrayList<>();
@@ -68,11 +84,37 @@ class VisitSDJpaServiceTest {
 
     @ParameterizedTest
     @MethodSource("initSingleVisit")
+    @DisplayName("BDD find visit by Id")
+    void findByIdBDD(Visit visit) {
+        given(visitRepository.findById(SINGLE_VISIT_ID)).willReturn(Optional.of(visit));
+
+        Visit result = serviceUnderTest.findById(SINGLE_VISIT_ID);
+
+        then(visitRepository).should().findById(SINGLE_VISIT_ID);
+        assertNotNull(result);
+        assertEquals(visit, result);
+    }
+
+    @ParameterizedTest
+    @MethodSource("initSingleVisit")
     void save(Visit visit) {
         when(visitRepository.save(any(Visit.class))).thenReturn(visit);
 
         Visit result = serviceUnderTest.save(visit);
         verify(visitRepository).save(visit);
+        assertNotNull(result);
+        assertEquals(visit, result);
+    }
+
+    @ParameterizedTest
+    @MethodSource("initSingleVisit")
+    @DisplayName("BDD find visit by Id")
+    void saveBDD(Visit visit) {
+        given(visitRepository.save(any(Visit.class))).willReturn(visit);
+
+        Visit result = serviceUnderTest.save(visit);
+
+        then(visitRepository).should().save(visit);
         assertNotNull(result);
         assertEquals(visit, result);
     }
@@ -84,8 +126,22 @@ class VisitSDJpaServiceTest {
     }
 
     @Test
+    @DisplayName("BDD delete visit")
+    void deleteBDD() {
+        serviceUnderTest.delete(new Visit());
+        then(visitRepository).should().delete(any(Visit.class));
+    }
+
+    @Test
     void deleteById() {
         serviceUnderTest.deleteById(SINGLE_VISIT_ID);
         verify(visitRepository).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("BDD delete visit by Id")
+    void deleteByIdBDD() {
+        serviceUnderTest.deleteById(SINGLE_VISIT_ID);
+        then(visitRepository).should().deleteById(anyLong());
     }
 }
