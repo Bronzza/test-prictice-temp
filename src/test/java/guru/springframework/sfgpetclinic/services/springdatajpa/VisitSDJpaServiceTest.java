@@ -90,7 +90,7 @@ class VisitSDJpaServiceTest {
 
         Visit result = serviceUnderTest.findById(SINGLE_VISIT_ID);
 
-        then(visitRepository).should().findById(SINGLE_VISIT_ID);
+        then(visitRepository).should(timeout(100)).findById(SINGLE_VISIT_ID);
         assertNotNull(result);
         assertEquals(visit, result);
     }
@@ -101,7 +101,7 @@ class VisitSDJpaServiceTest {
         when(visitRepository.save(any(Visit.class))).thenReturn(visit);
 
         Visit result = serviceUnderTest.save(visit);
-        verify(visitRepository).save(visit);
+        verify(visitRepository, timeout(100).times(1)).save(visit);
         assertNotNull(result);
         assertEquals(visit, result);
     }
@@ -121,8 +121,9 @@ class VisitSDJpaServiceTest {
 
     @Test
     void delete() {
-       serviceUnderTest.delete(new Visit());
-       verify(visitRepository).delete(any(Visit.class));
+        serviceUnderTest.delete(new Visit());
+        verify(visitRepository, timeout(50).atLeastOnce()).delete(any(Visit.class));
+        verifyNoMoreInteractions(visitRepository);
     }
 
     @Test

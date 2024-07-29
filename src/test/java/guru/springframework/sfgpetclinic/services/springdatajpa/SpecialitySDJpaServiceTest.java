@@ -11,8 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
@@ -119,6 +118,47 @@ class SpecialitySDJpaServiceTest {
         then(mockRepository).should(times(1)).findById(anyLong());
         then(mockRepository).shouldHaveNoMoreInteractions();
     }
+
+    @Test
+    @DisplayName("Exception intercepter mockito")
+    void exceptionTesta() {
+        doThrow(new RuntimeException()).when(mockRepository).findById(LONG_ID);
+//        given(mockRepository.findById(LONG_ID)).willThrow(new RuntimeException("Testing purposes"));
+
+//        Speciality result = serviceUnderTest.findById(LONG_ID);
+
+        assertThrows(RuntimeException.class, () -> mockRepository.findById(LONG_ID), "Exception wasn't thrown");
+    }
+
+    @Test
+    @DisplayName("Exception intercepter mockito")
+    void exceptionTest() {
+
+        given(mockRepository.findById(LONG_ID)).willThrow(new RuntimeException("Testing purposes"));
+
+//        Speciality result = serviceUnderTest.findById(LONG_ID);
+
+        assertThrows(RuntimeException.class, () -> mockRepository.findById(LONG_ID), "Exception wasn't thrown");
+        then(mockRepository).should().findById(LONG_ID);
+    }
+
+    @Test
+    @DisplayName("Lambda param matchers mochito")
+    void argsMatchersMockito() {
+
+        final String description = "DESCRIPTION";
+        Speciality speciality = new Speciality();
+        speciality.setDescription(description);
+        speciality.setId(LONG_ID);
+        given(mockRepository.save(argThat(argument -> description.equals(argument.getDescription()))))
+                .willReturn(speciality);
+//        when
+        Speciality result = serviceUnderTest.save(speciality);
+//        then
+        then(mockRepository).should().save(speciality);
+        assertEquals(speciality, result);
+    }
+
 
 
 }
